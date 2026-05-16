@@ -1,0 +1,77 @@
+/* =====================================================================
+   IndexPage layout — flip Flarum 2's left-sidebar grid to right-sidebar.
+
+   Real DOM from a live install:
+     .Page.IndexPage
+       .Page-pane
+       .Page-main
+         .Page-hero               (our hero + tiles)
+         .Page-container
+           .Page-sidebar          (Flarum's nav, sits on the left by default)
+           .Page-content          (toolbar + discussion list)
+
+   We use grid-template-columns + grid-template-areas to put the content
+   on the left and the sidebar on the right at a fixed 320px width.
+   ===================================================================== */
+
+.IndexPage .Page-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-areas: 'content sidebar';
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 920px) {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'content' 'sidebar';
+  }
+}
+
+.IndexPage .Page-content {
+  grid-area: content;
+  min-width: 0;
+}
+
+.IndexPage .Page-sidebar {
+  grid-area: sidebar;
+  width: 320px;
+  max-width: 100%;
+
+  @media (max-width: 920px) {
+    width: auto;
+  }
+}
+
+/* Keep the sidebar sticky on tall pages — but only at desktop widths so
+   it doesn't trap scrolling on mobile. */
+@media (min-width: 921px) {
+  .IndexPage .Page-sidebar .sideNav,
+  .IndexPage .Page-sidebar .EdonlineSidebarPanels {
+    position: relative;
+  }
+
+  .IndexPage .Page-sidebar {
+    position: sticky;
+    top: 86px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-right: 4px;
+
+    /* Quiet the scrollbar inside the sticky column. */
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: var(--border-strong); }
+  }
+}
+
+/* The render moves Flarum's stock nav (Start a Discussion + Tags +
+   Messages + Groups + ...) up into the header. Hide the IndexPage-nav
+   block here so the sidebar shows only our own widget stack. The
+   underlying functionality stays — links live in HeaderPrimary now
+   and the "Start a Discussion" button moves to HeaderSecondary. */
+.IndexPage .Page-sidebar > .IndexPage-nav,
+.IndexPage .Page-sidebar > nav.IndexPage-nav { display: none; }
+
+/* The .Page-pane on the left (used for mobile drawer) — collapse on
+   desktop so it doesn't add empty space. */
+.IndexPage .Page-pane:empty { display: none; }
