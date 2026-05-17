@@ -1,0 +1,651 @@
+/* =====================================================================
+   Discussion page — full post stream styling.
+
+   DOM reference (confirmed via live probe of Flarum 2 install):
+
+   .DiscussionPage
+     .Hero.DiscussionHero.DiscussionHero--colored   (style="--hero-bg:#9b1212")
+       .container
+         ul.DiscussionHero-items
+           li.item-tags > .TagsLabel > a.TagLabel
+           li.item-title > h1.DiscussionHero-title
+     .PostStream
+       .PostStream-item
+         article.CommentPost.Post.Post--by-start-user
+           .Post-container
+             .Post-side
+               a > img.Avatar.Post-avatar          (64x64)
+             .Post-main
+               header.Post-header > ul
+                 li.item-user > .PostUser (name + badges)
+                 li.item-meta > Dropdown.PostMeta
+               .Post-body
+               aside.Post-actions > ul
+               footer.Post-footer
+       .PostStream-item  (PostStream-timestamp divider — "6 DAYS LATER")
+       .PostStream-item
+         button.Post.ReplyPlaceholder  (inline "Write a Reply..." at bottom)
+     nav.DiscussionPage-nav            (right-side scrubber + Reply button)
+   ===================================================================== */
+
+/* -------- Discussion hero -------- */
+
+/* DiscussionHero — accept BOTH treatments:
+ *   - When the tag has no color (no --hero-bg set), render as a clean
+ *     neutral card matching the render preview
+ *   - When the discussion's primary tag IS colored (Flarum core sets
+ *     --hero-bg via inline style, and ramon/colored extends this),
+ *     defer to the tag color so the colored treatment flows through
+ *
+ * Earlier versions of this rule used `background: var(--surface)
+ * !important` and `--hero-bg: var(--surface)` which stomped colored's
+ * tag-tinted hero entirely. */
+.DiscussionHero {
+  background: var(--hero-bg, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 22px 28px 22px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+
+  .container { padding: 0; max-width: none; }
+
+  .DiscussionHero-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Tag pill above the title */
+  .item-tags { order: -1; }
+
+  .TagsLabel,
+  .item-tags { display: inline-flex; align-items: center; gap: 6px; }
+
+  .TagLabel {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+
+    .TagLabel-icon { font-size: 11px; }
+  }
+
+  .DiscussionHero-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  /* Neutral (un-colored) hero: text uses our standard token, tag pill
+     uses surface-inset chip */
+  &:not(.DiscussionHero--colored) {
+    color: var(--text);
+    border: 1px solid var(--border);
+
+    .DiscussionHero-title { color: var(--text); }
+
+    .TagLabel {
+      background: var(--tag-bg, var(--surface-inset));
+      color: var(--text-secondary);
+    }
+  }
+
+  /* Colored hero (tag has a color, --hero-bg flooded): Flarum applies
+     .text-contrast--light or --dark; honor it so the title stays
+     readable. Tag pill goes solid-opaque (not low-contrast white
+     overlay) so its label reads clearly on the colored tint. */
+  &.DiscussionHero--colored {
+    border-color: transparent;
+    box-shadow: var(--shadow-md);
+
+    /* Solid pill: white background with the tag's own color as text,
+       pulled from the inline --tag-bg style Flarum sets on TagLabel.
+       Falls back to current text color when --tag-bg isn't set. */
+    .TagLabel {
+      background: #fff !important;
+      color: var(--tag-bg, currentColor) !important;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+      .TagLabel-icon { color: var(--tag-bg, currentColor); }
+      .TagLabel-name { color: var(--tag-bg, currentColor); }
+    }
+
+    &.text-contrast--light {
+      color: #fff;
+      .DiscussionHero-title { color: #fff; }
+    }
+    &.text-contrast--dark {
+      color: #0f172a;
+      .DiscussionHero-title { color: #0f172a; }
+    }
+  }
+}
+
+/* -------- Post card -------- */
+
+.PostStream-item .Post,
+.PostStream-item article.Post {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  /* `overflow` MUST stay visible — dropdowns (Post controls kebab,
+     Edit menu) and the reactions popup are absolutely positioned and
+     need to escape the card's bounds. Earlier overflow:hidden was
+     set to mask the best-answer banner's top corners; that's now
+     handled by giving the banner its own top border-radius below. */
+  overflow: visible;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  /* Original-poster posts get a primary-color accent on the LEFT edge
+   * of the outer card. Putting the colored border on .Post (which has
+   * border-radius) rather than on .Post-container (which doesn't) lets
+   * the colored accent curve into the top-left and bottom-left rounded
+   * corners — the "wraps around slightly" look from the render mockup.
+   *
+   * Width: 3px replaces the default 1px border on the left side, so
+   * the full card border is 3px-left, 1px on the other three sides. */
+  &.Post--by-start-user,
+  &.Post--firstPost {
+    border-left: 3px solid var(--colored-bg, var(--primary));
+  }
+}
+
+/* The internal flex layout: 96px avatar rail + flexible content */
+.Post-container {
+  display: flex;
+  gap: 0;
+  padding: 0;
+}
+
+.Post-side {
+  flex: 0 0 96px;
+  padding: 22px 0 22px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  > a { display: inline-flex; }
+
+  .Avatar.Post-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.Post-main {
+  flex: 1;
+  min-width: 0;
+  padding: 18px 24px 20px;
+}
+
+/* Post header — name + badges + meta on one row */
+.Post-header {
+  margin-bottom: 14px;
+
+  > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .item-user { display: flex; align-items: center; }
+  .item-meta {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  .PostMeta button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12.5px;
+
+    &:hover { color: var(--text); }
+  }
+}
+
+/* PostUser — the username + online dot + group badges cluster.
+   Flarum hides a duplicate avatar inside PostUser-name (the visible
+   one lives in Post-side); we keep ours from over-styling that. */
+.PostUser {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.PostUser-name {
+  font-weight: 600;
+  font-size: 14.5px;
+  margin: 0;
+
+  a {
+    color: var(--text);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  a:hover { color: var(--primary); }
+
+  /* The duplicate inline avatar that Flarum renders in the name link.
+     Post-side already shows it large; hide here to dedupe. */
+  .Avatar.Post-avatar {
+    display: none !important;
+  }
+
+  .UserOnline {
+    color: #22c55e;
+    font-size: 8px;
+  }
+
+  .username { font-weight: 600; }
+}
+
+/* Group badges inline with the name. .Badge styling itself is
+   intentionally untouched (Flarum paints it from --badge-bg). */
+.PostUser-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0 0 0 8px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+/* -------- Post body -------- */
+
+.Post-body {
+  font-size: 14.75px;
+  line-height: 1.65;
+  color: var(--text);
+
+  p { margin: 0 0 12px; }
+  p:last-child { margin-bottom: 0; }
+
+  h1, h2, h3, h4 { margin-top: 18px; }
+
+  a { color: var(--primary); }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: var(--surface-inset);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 13px;
+  }
+
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: var(--r-sm);
+    overflow-x: auto;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 12.75px;
+    line-height: 1.5;
+    margin: 12px 0;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--primary);
+    background: var(--primary-ghost);
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    font-size: 13.75px;
+    color: var(--text-secondary);
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: var(--r-sm);
+  }
+}
+
+/* -------- Post actions (reactions row) -------- */
+.Post-actions {
+  margin-top: 14px;
+
+  > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+/* -------- Post footer (Reply/Like/etc controls) -------- */
+.Post-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+
+  > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .Button {
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    border-radius: var(--r-sm);
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+
+    &:hover {
+      background: var(--surface-inset);
+      color: var(--text);
+    }
+  }
+}
+
+/* -------- Time gap divider ("6 DAYS LATER") -------- */
+.PostStream-timestamp,
+.PostStream-item--timestamp,
+.PostStream-divider {
+  text-align: center;
+  margin: 18px 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  position: relative;
+
+  &::before,
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 80px;
+    height: 1px;
+    background: var(--border-strong);
+    vertical-align: middle;
+    margin: 0 14px;
+  }
+}
+
+/* -------- Reply placeholder (bottom inline "Write a Reply...") --------
+ *
+ * Flarum's stock .Post.ReplyPlaceholder rule applies
+ * `margin-left: -20px` (probe of the live install showed margin
+ * "14px 0px 14px -20px"). That's a holdover from Flarum 1.x's
+ * layout where it intentionally pulled the placeholder under the
+ * avatar rail. In our Post-container layout the negative margin
+ * just shoves the reply box 20px LEFT of every other post, making
+ * it look misaligned.
+ *
+ * Explicit margin: 14px 0 — kills the negative left in any
+ * direction so the placeholder lines up edge-to-edge with the
+ * post cards above it. */
+.Post.ReplyPlaceholder,
+button.ReplyPlaceholder {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  margin: 14px 0;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--primary-ghost);
+  }
+
+  .Post-container { padding: 0; }
+  .Post-side {
+    flex: 0 0 96px;
+    padding: 18px 0 18px 22px;
+  }
+  .Post-side .Avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--surface-inset);
+    display: inline-block;
+  }
+  .Post-main {
+    padding: 22px 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+  .Post-header {
+    margin: 0;
+    color: var(--text-muted);
+    font-weight: 500;
+    background: none;
+    border: none;
+  }
+}
+
+/* -------- Right-side scrubber (.DiscussionPage-nav) -------- */
+nav.DiscussionPage-nav {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px 16px 16px;
+  box-shadow: var(--shadow-sm);
+
+  > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* The primary "Reply" / "Log In to Reply" split button */
+  .item-controls .Button--primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+
+    &:hover { background: var(--primary-dark); }
+  }
+
+  /* PostStream scrubber visual track */
+  .PostStreamScrubber {
+    color: var(--text-secondary);
+
+    .PostStreamScrubber-scrollbar {
+      background: var(--surface-inset);
+      border-radius: var(--r-pill);
+    }
+    .PostStreamScrubber-handle {
+      background: var(--primary);
+      border-radius: var(--r-pill);
+    }
+    .PostStreamScrubber-info { font-size: 12.5px; }
+  }
+}
+
+/* -------- Best Answer highlight (used by fof/best-answer) --------
+ *
+ * The post that IS the marked best answer gets a 1px green border + a
+ * full-width banner at the top reading "✓ Marked as solution".
+ *
+ * Earlier versions tried `content: '\f058  Marked as solution'` with
+ * font-family: 'Font Awesome 6 Free' — that broke because Flarum 2
+ * ships FA7 (not FA6), and mixing the FA codepoint with text in a
+ * single content string forced the label characters to render in the
+ * icon font as missing-glyph boxes.
+ *
+ * Switched to Unicode U+2713 (✓) for the check — it renders in any
+ * system font, so the banner shows correctly regardless of which FA
+ * version (or none) is loaded. The banner sits at the top via
+ * position:absolute on ::before, with .Post-container padding-top
+ * reserving space so the post body doesn't overlap it.
+ */
+.Post--bestAnswer,
+.Post.is-answer {
+  border: 1px solid var(--status-resolved) !important;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08), var(--shadow-sm) !important;
+  position: relative;
+
+  > .Post-container {
+    padding-top: 36px;
+  }
+
+  &::before {
+    content: '✓ Marked as solution';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 22px;
+    background: var(--status-resolved-bg);
+    color: var(--status-resolved);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(5, 150, 105, 0.18);
+    z-index: 1;
+    /* Match the Post's outer radius on the top corners so the banner
+       tucks into the rounded corners cleanly now that .Post has
+       overflow:visible (needed for dropdowns + reactions popup). */
+    border-top-left-radius: var(--r-md);
+    border-top-right-radius: var(--r-md);
+  }
+}
+
+/* fof/best-answer's "Best Answer / set by USER N minutes ago" pill
+   that appears in EVERY post header (not just the best-answer post).
+   The default treatment is a big green-and-white pill that dominated
+   the post header at ~330x26. Slim it down to a compact chip that
+   still reads but doesn't fight the username/timestamp for space. */
+.Post .item-isBestAnswer,
+.Post .Post--BestAnswer,
+li.Post--BestAnswer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--status-resolved-bg);
+  color: var(--status-resolved);
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid rgba(5, 150, 105, 0.20);
+}
+
+.BestAnswer--User {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+  opacity: 0.75;
+  font-size: 10.5px;
+}
+
+/* fof/best-answer's inline preview of the best answer inside the OP
+   card (.item-bestAnswerPost is the wrapper). It was rendering as a
+   591x80 block stuck under the OP body with no visual hierarchy —
+   reads like an accidental second post inside the OP. Style it as a
+   clean inset call-out with a left primary accent. */
+.Post .item-bestAnswerPost {
+  display: block;
+  margin: 14px 0 0;
+  padding: 12px 14px 12px 16px;
+  background: var(--surface-inset);
+  border-left: 3px solid var(--status-resolved);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+
+  /* The inline preview reuses Post-style markup — neutralize its
+     duplicated header so it doesn't look like a real post. */
+  .Post-header,
+  .PostUser {
+    margin-bottom: 6px;
+    font-size: 12.5px;
+  }
+
+  .PostUser-name { font-size: 12.5px; }
+  .Post-body { font-size: 13.5px; color: var(--text-secondary); }
+}
+
+/* The small checkmark badge inside DiscussionHero that fof/best-answer
+   adds when a discussion has a marked answer. Position it to the right
+   of the title instead of floating mid-hero. */
+.DiscussionHero-badges {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+
+  .Badge--bestAnswer {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+  }
+}
+
+/* fof/reactions styling moved to its own partial (less/reactions.less)
+   — borrowed from ram0ng1/avocado's approach with the popup + cascade
+   emoji entrance + active chip tint. Loaded via forum.less @import. */
+
+/* Quote button container (fof/quotebutton popup anchor) — make sure
+   it doesn't render any stray background frame inside posts. */
+.Post-quoteButtonContainer {
+  background: transparent;
+  border: none;
+}
+
+/* Group badges — INTENTIONALLY no .Post .Badge override here.
+ *
+ * Flarum 2 renders group badges (.Badge.Badge--group--N) as 22x22
+ * circles colored by each group's admin-configured color, passed in
+ * inline via `style="--badge-bg: #B72A2A"`. An override here that
+ * forces background-color / padding / border-radius stomps that and
+ * makes the badge invisible. See post.less history for the burn. */

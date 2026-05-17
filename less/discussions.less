@@ -1,0 +1,208 @@
+/* =====================================================================
+   Discussion list — applies to Flarum's .DiscussionListItem
+   ===================================================================== */
+
+/* DiscussionList renders as a stack of rounded item-cards now,
+   matching the post-stream pattern where each .Post is its own
+   bordered/rounded card. The list itself becomes a transparent
+   wrapper — its border, background, and shadow are pushed onto each
+   item below so the colored stripe (border-left from ramon/colored)
+   wraps the corners of every row the same way the colored stripe on
+   .Post does. */
+.DiscussionList {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Each row is now its own rounded card with surface bg + border +
+   shadow + full border-radius. ramon/colored's border-left wraps
+   all 4 corners the same way .Post does. Rows stack with an 8px gap
+   between them.
+
+   The right padding stays larger than the left — when a moderator/
+   admin views the list, Flarum renders a per-item controls dropdown
+   trigger (⋯) at the end of the row that's hidden from guests, and
+   that trigger needs room past the comment-count badge to read as
+   separate from the card edge.
+
+   NOTE: do NOT reset `right` or `margin-right` on .Dropdown or
+   .DiscussionListItem-controls here. Flarum positions the dropdown's
+   popup menu with `right:` values; resetting them shifts the menu
+   off-screen or hides it entirely. Trust the padding to keep the
+   trigger inside the card. */
+.IndexPage .DiscussionList .DiscussionListItem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 48px 18px 26px;
+  margin-bottom: 8px;
+  /* No bottom border — the gap between rows is the separator now. */
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s, border-color 0.15s;
+
+  &:last-child { margin-bottom: 0; }
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--surface-inset); }
+
+  /* Whatever wrapper Flarum uses around the avatar (the link or the
+     Avatar itself) — make sure it lives inside our padding instead of
+     reverse-margining out of it. */
+  > .Avatar,
+  > a > .Avatar,
+  .DiscussionListItem-author {
+    margin-left: 0 !important;
+  }
+
+  .DiscussionListItem-main {
+    padding: 0;
+    margin-left: 12px;
+  }
+
+  .DiscussionListItem-title {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    margin: 0 0 4px;
+    color: var(--text);
+
+    &:hover { color: var(--primary); }
+  }
+
+  .DiscussionListItem-info {
+    /* --text-secondary not --text-muted: on a white card the muted
+       slate reads as nearly-illegible 4:1 contrast. Secondary gives a
+       comfortable read for the "X replied N hours ago" meta. */
+    color: var(--text-secondary);
+    font-size: 12.25px;
+  }
+
+  .DiscussionListItem-count {
+    color: var(--text-secondary);
+    font-weight: 600;
+
+    &.unread {
+      color: var(--primary);
+      font-weight: 700;
+    }
+  }
+}
+
+/* Filter chip row */
+.EdonlineFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 14px;
+  flex-wrap: wrap;
+}
+
+.EdonlineFilterChip {
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .count {
+    margin-left: 6px;
+    opacity: 0.75;
+    font-size: 12px;
+  }
+}
+
+/* Tag pills.
+ *
+ * Our own .EdonlineTag class uses a neutral surface. For Flarum's
+ * .TagLabel we deliberately do NOT override background-color — the
+ * extension applies the per-tag color inline (from admin tag settings)
+ * and our override was stomping it, leaving every tag as a nearly-
+ * invisible white-on-white pill in light mode. We adjust shape only. */
+.EdonlineTag {
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+}
+
+.EdonlineTag--priority {
+  background: rgba(239, 68, 68, 0.10);
+  color: #dc2626;
+}
+
+.TagLabel {
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+  line-height: 1.5;
+}
+
+/* Section header above the discussion toolbar — "Recent Discussions"
+ * plus an optional count badge. Matches the render's section title. */
+.EdonlineSectionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 4px 14px;
+  padding-top: 4px;
+
+  &-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--text);
+  }
+
+  &-count {
+    background: var(--surface-inset);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: var(--r-pill);
+  }
+}
+
+/* Status pills (used by both discussions and tickets) */
+.StatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+
+  &--open     { background: var(--status-open-bg);     color: var(--status-open); }
+  &--progress { background: var(--status-progress-bg); color: var(--status-progress); }
+  &--awaiting { background: var(--status-awaiting-bg); color: var(--status-awaiting); }
+  &--resolved { background: var(--status-resolved-bg); color: var(--status-resolved); }
+  &--solved   { background: var(--status-solved-bg);   color: var(--status-solved); }
+  &--closed   { background: var(--status-closed-bg);   color: var(--status-closed); }
+}
