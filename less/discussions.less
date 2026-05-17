@@ -1,0 +1,216 @@
+/* =====================================================================
+   Discussion list — applies to Flarum's .DiscussionListItem
+   ===================================================================== */
+
+.DiscussionList {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  /* No overflow:hidden here — that clipped the colored left border
+     ramon/colored paints onto rows. Instead we round the first +
+     last items themselves below so each item's own border-radius
+     contains its hover background AND curves around its colored
+     left border naturally. */
+}
+
+/* Round the first and last list items so their hover background and
+ * the colored left stripe both follow the parent's rounded shape.
+ * Middle items stay square — they don't need to wrap any corners. */
+.DiscussionList .DiscussionListItem:first-child {
+  border-top-left-radius: var(--r-md);
+  border-top-right-radius: var(--r-md);
+}
+
+.DiscussionList .DiscussionListItem:last-child {
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: var(--r-md);
+}
+
+/* Higher specificity (.IndexPage prefix) so we win over Flarum's
+   stock per-item padding which otherwise pins the avatar flush
+   against the card's left edge AND the controls dropdown flush
+   against the right edge.
+
+   The right padding is intentionally larger than the left — when a
+   moderator/admin views the list, Flarum renders a per-item controls
+   dropdown trigger (⋯) at the end of the row that's hidden from
+   guests, and that trigger needs room past the comment-count badge
+   to read as separate from the card edge.
+
+   NOTE: do NOT reset `right` or `margin-right` on .Dropdown or
+   .DiscussionListItem-controls here. Flarum positions the dropdown's
+   popup menu with `right:` values; resetting them shifts the menu
+   off-screen or hides it entirely. Trust the padding to keep the
+   trigger inside the card. */
+.IndexPage .DiscussionList .DiscussionListItem {
+  padding: 18px 48px 18px 26px;
+
+  /* Stronger separator between rows — the default --border at 7%
+     opacity reads as nearly invisible on the white card surface
+     because the surface IS white. --border-strong (12%) gives a
+     clear divider without going harsh. */
+  border-bottom: 1px solid var(--border-strong);
+  transition: background 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--surface-inset); }
+
+  /* Whatever wrapper Flarum uses around the avatar (the link or the
+     Avatar itself) — make sure it lives inside our padding instead of
+     reverse-margining out of it. */
+  > .Avatar,
+  > a > .Avatar,
+  .DiscussionListItem-author {
+    margin-left: 0 !important;
+  }
+
+  .DiscussionListItem-main {
+    padding: 0;
+    margin-left: 12px;
+  }
+
+  .DiscussionListItem-title {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    margin: 0 0 4px;
+    color: var(--text);
+
+    &:hover { color: var(--primary); }
+  }
+
+  .DiscussionListItem-info {
+    /* --text-secondary not --text-muted: on a white card the muted
+       slate reads as nearly-illegible 4:1 contrast. Secondary gives a
+       comfortable read for the "X replied N hours ago" meta. */
+    color: var(--text-secondary);
+    font-size: 12.25px;
+  }
+
+  .DiscussionListItem-count {
+    color: var(--text-secondary);
+    font-weight: 600;
+
+    &.unread {
+      color: var(--primary);
+      font-weight: 700;
+    }
+  }
+}
+
+/* Filter chip row */
+.EdonlineFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 14px;
+  flex-wrap: wrap;
+}
+
+.EdonlineFilterChip {
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .count {
+    margin-left: 6px;
+    opacity: 0.75;
+    font-size: 12px;
+  }
+}
+
+/* Tag pills.
+ *
+ * Our own .EdonlineTag class uses a neutral surface. For Flarum's
+ * .TagLabel we deliberately do NOT override background-color — the
+ * extension applies the per-tag color inline (from admin tag settings)
+ * and our override was stomping it, leaving every tag as a nearly-
+ * invisible white-on-white pill in light mode. We adjust shape only. */
+.EdonlineTag {
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+}
+
+.EdonlineTag--priority {
+  background: rgba(239, 68, 68, 0.10);
+  color: #dc2626;
+}
+
+.TagLabel {
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+  line-height: 1.5;
+}
+
+/* Section header above the discussion toolbar — "Recent Discussions"
+ * plus an optional count badge. Matches the render's section title. */
+.EdonlineSectionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 4px 14px;
+  padding-top: 4px;
+
+  &-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--text);
+  }
+
+  &-count {
+    background: var(--surface-inset);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: var(--r-pill);
+  }
+}
+
+/* Status pills (used by both discussions and tickets) */
+.StatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+
+  &--open     { background: var(--status-open-bg);     color: var(--status-open); }
+  &--progress { background: var(--status-progress-bg); color: var(--status-progress); }
+  &--awaiting { background: var(--status-awaiting-bg); color: var(--status-awaiting); }
+  &--resolved { background: var(--status-resolved-bg); color: var(--status-resolved); }
+  &--solved   { background: var(--status-solved-bg);   color: var(--status-solved); }
+  &--closed   { background: var(--status-closed-bg);   color: var(--status-closed); }
+}
