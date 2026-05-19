@@ -1,0 +1,125 @@
+/* =====================================================================
+   IndexPage layout — flip Flarum 2's left-sidebar grid to right-sidebar.
+
+   Real DOM from a live install:
+     .Page.IndexPage
+       .Page-pane
+       .Page-main
+         .Page-hero               (our hero + tiles)
+         .Page-container
+           .Page-sidebar          (Flarum's nav, sits on the left by default)
+           .Page-content          (toolbar + discussion list)
+
+   We use grid-template-columns + grid-template-areas to put the content
+   on the left and the sidebar on the right at a fixed 320px width.
+   ===================================================================== */
+
+/* Shared content width for the whole IndexPage.
+ *
+ * Flarum's stock .container clamps to ~1100px which leaves the
+ * discussion list cramped once you carve out 320px for the sidebar.
+ * Widen the cap and apply the same width + gutter to .Page-hero so
+ * the hero, category tiles, discussion grid, and sidebar all align in
+ * one virtual column — without this the hero spans full viewport
+ * width while the grid sits inside Flarum's narrower default
+ * container, giving misaligned edges.
+ *
+ * We use !important here because Flarum's .container is defined with
+ * breakpoint-scoped rules that match more specifically at large
+ * viewports (e.g. `@media (min-width:1200px) .container { max-width
+ * 1170px }`). Without !important those media-query rules end up
+ * stomping our override. */
+.IndexPage .Page-container.container,
+.IndexPage .Page-hero {
+  max-width: 1600px !important;
+  width: auto !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .IndexPage .Page-container.container,
+  .IndexPage .Page-hero {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+.IndexPage .Page-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-areas: 'content sidebar';
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 920px) {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'content' 'sidebar';
+    gap: 20px;
+  }
+}
+
+.IndexPage .Page-content {
+  grid-area: content;
+  min-width: 0;
+}
+
+.IndexPage .Page-sidebar {
+  grid-area: sidebar;
+  width: 320px;
+  max-width: 100%;
+
+  @media (max-width: 920px) {
+    width: auto;
+  }
+}
+
+/* Keep the sidebar sticky on tall pages — but only at desktop widths so
+   it doesn't trap scrolling on mobile. */
+@media (min-width: 921px) {
+  .IndexPage .Page-sidebar .sideNav,
+  .IndexPage .Page-sidebar .MosaicSidebarPanels {
+    position: relative;
+  }
+
+  .IndexPage .Page-sidebar {
+    position: sticky;
+    top: 86px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-right: 4px;
+
+    /* Quiet the scrollbar inside the sticky column. */
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: var(--border-strong); }
+  }
+}
+
+/* Nav destinations live in IndexSidebar.navItems.
+ *
+ * Desktop (≥768px): hide the IndexPage-nav block in the sidebar — the
+ * hero pill row (MosaicHeroNav) owns nav at this viewport.
+ *
+ * Phone (≤767px): leave IndexPage-nav in the DOM. Flarum core's
+ * @phone CSS positions the inner .App-titleControl `position: absolute;
+ * top: 0; left: 50%` so the page-title SelectDropdown escapes to the
+ * top of the screen — tap it to open the bottom-sheet nav menu (this
+ * is Flarum's stock mobile nav pattern).
+ *
+ * The :not(.LinkRobinsSupport-sidebar) keeps the linkrobins/support
+ * extension's own .IndexPage-nav sidebar visible — it ships filter
+ * chips + "New ticket" controls that aren't nav destinations. */
+@media (min-width: 768px) {
+  .IndexPage .Page-sidebar > .IndexPage-nav:not(.LinkRobinsSupport-sidebar),
+  .IndexPage .Page-sidebar > nav.IndexPage-nav:not(.LinkRobinsSupport-sidebar) {
+    display: none;
+  }
+}
+
+/* The .Page-pane on the left (used for mobile drawer) — collapse on
+   desktop so it doesn't add empty space. */
+.IndexPage .Page-pane:empty { display: none; }
