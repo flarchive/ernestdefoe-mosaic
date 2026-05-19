@@ -1,0 +1,451 @@
+/* =====================================================================
+   Header / Nav — applies to .App-header and our custom nav
+   ===================================================================== */
+
+.App-header {
+  background: var(--header-bg);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+}
+
+/* Flarum's brand area */
+.App-titleImage,
+.App-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Logo treatment — apply to Flarum's title link */
+.Header-title .item-title a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Header layout — defer to Flarum's stock styling.
+ *
+ * Mosaic used to inject nav tabs into .Header-primary and reshape the
+ * header icon buttons into 36x36 squares to make them feel like a
+ * native nav row. Since nav moved to MosaicHeroNav (desktop pill row
+ * under the hero) + the stock .App-titleControl SelectDropdown (phone),
+ * the header is back to being just logo + search + notifications +
+ * user dropdown — which Flarum's stock CSS already styles correctly.
+ *
+ * One thing we DO override: the header's .container max-width. By
+ * default Flarum's .container clamps to ~1140px regardless of
+ * viewport, but our IndexPage hero/grid live in a 1600px container
+ * (see layout.less). Without matching the header, the logo sits ~190
+ * px from the viewport edge while the hero's left edge is ~32px out —
+ * a noticeable misalignment. Widen the header container to match. */
+
+/* `width: auto` is the load-bearing piece — Flarum's .container sets
+ * an explicit `width: 1100px` at the ≥xl breakpoint, which beats
+ * `max-width: 1600px` even with !important because width is the
+ * dominant property when both are present. Without overriding width
+ * here the header stayed clamped to ~1100px while the hero/grid sat
+ * in a 1600px container, producing the persistent misalignment
+ * (logo at x≈210, hero left edge at x≈32). */
+.App-header > .container,
+.App-header .container {
+  max-width: 1600px !important;
+  width: auto !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .App-header > .container,
+  .App-header .container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+/* Nav destinations live in IndexSidebar.navItems. Stock Flarum
+ * .sideNav styling handles the desktop sidebar / tablet horizontal /
+ * phone Dropdown--select surfaces. The hero-area pill row is rendered
+ * separately by MosaicHeroNav and styled below. */
+
+/* ── Composer trigger ──────────────────────────────────────────────────
+ * Click-to-open card with avatar + prompt + "+ New Discussion" button.
+ * Lives INSIDE the hero panel (HeroPanel.js renders it between subtitle
+ * and stats — same slot the search bar used to occupy) so it inherits
+ * the hero's gradient backdrop. The pill shape + drop shadow visually
+ * matches the previous search box, but now opens the composer instead.
+ *
+ * Standalone fallback shape (outside .MosaicHero) is kept for safety
+ * in case the component is mounted elsewhere later. */
+.MosaicComposerTrigger {
+  background: rgba(255, 255, 255, 0.98);
+  border: none;
+  border-radius: var(--r-pill, 999px);
+  min-height: 58px;
+  padding: 6px 6px 6px 22px;
+  cursor: pointer;
+  margin: 0;
+  max-width: 640px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+
+  &:hover {
+    background: #fff;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary, var(--primary-color));
+    outline-offset: 2px;
+  }
+}
+
+/* Scoped tweaks when the trigger renders inside the hero (always today,
+ * but explicit for clarity). */
+.MosaicHero .MosaicComposerTrigger {
+  position: relative; /* sits above the hero ::before overlay */
+  margin: 0 0 22px;
+}
+
+.MosaicComposerTrigger-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.MosaicComposerTrigger-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.MosaicComposerTrigger-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--primary, var(--primary-color));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.MosaicComposerTrigger-placeholder {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted, var(--muted-color));
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.MosaicComposerTrigger-newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: var(--r-pill, 999px);
+  border: none;
+  background: var(--primary, var(--primary-color));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--primary-dark, var(--primary, var(--primary-color)));
+    color: #fff;
+  }
+
+  .fas { font-size: 11px; }
+
+  @media (max-width: 480px) {
+    padding: 0 14px;
+    .MosaicComposerTrigger-newBtn-label { display: none; }
+  }
+}
+
+/* ── Hero inline nav (pill row under the hero) ─────────────────────────
+ * Mirror of ramon/avocado's .AvocadoHomeNav inline pattern. Reads from
+ * IndexSidebar.navItems at render time, so any extension that adds to
+ * Flarum's canonical nav list (Tags, Subscriptions, anything custom)
+ * shows up here automatically.
+ *
+ * Hidden on phone: Flarum's .App-titleControl SelectDropdown next to
+ * the page title is the native phone nav surface — duplicating pills
+ * here would just clutter the hero. */
+.MosaicHeroNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 18px 0 22px;
+  padding-bottom: 8px;
+
+  /* Some extensions wrap their nav contribution in a container
+   * element (e.g. ramon/marketplace renders <div class="MarketplaceLink">
+   * <a>Shop</a></div> instead of a bare LinkButton). `display: contents`
+   * makes the wrapper transparent for layout — its inner link becomes
+   * a direct flex child of MosaicHeroNav so the pill selector below
+   * still matches. */
+  > div, > span, > section, > article {
+    display: contents;
+  }
+
+  /* Pill styling. Matches both direct children (the common case —
+   * <LinkButton> / <Button>) AND nested ones inside a wrapper. The
+   * deep selectors are scoped to .Button / .LinkButton / <a> / <button>
+   * so we don't accidentally restyle decorative inner spans. */
+  > .Button,
+  > .LinkButton,
+  > a,
+  > button,
+  .Button,
+  .LinkButton {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    border: none !important;
+    background: var(--surface, var(--control-bg)) !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text, var(--text-color)) !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    .Button-icon { font-size: 12px; margin: 0; }
+    .Button-label { display: inline-flex; padding: 0; }
+    .Button-caret { display: none; }
+
+    /* Active dot indicator underneath the pill */
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%) scaleX(0);
+      width: 16px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--primary, var(--primary-color));
+      transition: transform 0.18s ease;
+    }
+
+    &:hover, &:focus {
+      background: var(--surface-inset, var(--control-bg-hover)) !important;
+      color: var(--primary, var(--primary-color)) !important;
+      text-decoration: none !important;
+    }
+
+    /* Flarum LinkButton ships active state as `active="true"` */
+    &[active="true"],
+    &.active {
+      background: color-mix(in srgb, var(--primary, var(--primary-color)) 10%, transparent) !important;
+      color: var(--primary, var(--primary-color)) !important;
+
+      &::after { transform: translateX(-50%) scaleX(1); }
+    }
+  }
+
+  /* Hidden on phone — the hamburger drawer carries the nav surface on
+   * mobile, so the pill row would just duplicate it inside the hero. */
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+/* ── Mobile hamburger: dropdowns render as inline panels ───────────────
+ * Flarum core on @phone renders every .Dropdown-menu as a fixed bottom
+ * sheet (position:fixed; left:0!important; right:0!important; bottom:0;
+ * width:auto!important; transform:translate(0,70vh); visibility:hidden,
+ * flipped on .open). Inside the drawer that's the wrong UX — taps
+ * trigger a viewport-wide overlay instead of revealing the menu inline.
+ *
+ * We match core's specificity and !important pattern field-for-field
+ * so every fixed-position property gets overridden, then anchor the
+ * panel under its parent .Dropdown via position:absolute on a relative
+ * parent (`.Dropdown` already has position:relative in core).
+ *
+ * Selector specificity walks up the open-drawer DOM chain so we beat
+ * core's `@phone .Dropdown .Dropdown-menu` rule (specificity 0,2,0). */
+@media (max-width: 767px) {
+  .App.drawerOpen .App-drawer .Dropdown .Dropdown-menu,
+  .App-drawer .Dropdown.open .Dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-height: 60vh !important;
+    padding: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 6px !important;
+    overflow-y: auto !important;
+    transform: none !important;
+    transition: opacity 0.15s, visibility 0s !important;
+    border: 1px solid var(--border, #eaeaf0);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    background: var(--surface, var(--body-bg));
+    z-index: var(--zindex-modal, 1050);
+  }
+
+  /* Core hides the menu via `visibility: hidden` and a translate, then
+   * shows it on `.Dropdown.open`. With transform reset above, the only
+   * thing keeping it hidden when closed is visibility — leave that to
+   * core, but make sure when it IS open we're visible. */
+  .App-drawer .Dropdown.open .Dropdown-menu {
+    visibility: visible !important;
+  }
+
+  /* Core dims the rest of the screen with a full-viewport backdrop when
+   * a phone dropdown opens. Inside the drawer that backdrop covers the
+   * drawer contents AND the dropdown itself — kill it. */
+  .App-drawer .dropdown-backdrop,
+  .App.drawerOpen .dropdown-backdrop {
+    display: none !important;
+  }
+
+  /* Reset core's bottom-sheet padding on individual menu items so they
+   * sit at a comfortable density inside the inline panel. */
+  .App-drawer .Dropdown .Dropdown-menu > li > a,
+  .App-drawer .Dropdown .Dropdown-menu > li > button {
+    padding: 10px 16px !important;
+    font-size: 14px;
+
+    &.hasIcon {
+      padding-left: 40px !important;
+    }
+  }
+
+  /* "View all …" footer inside HeaderDropdown menus. */
+  .App-drawer .HeaderList-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border, #eaeaf0);
+
+    .Button {
+      justify-content: center;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+/* Header action icons (notifications, search, user dropdown) inherit
+ * Flarum's stock styling — circular avatar, native icon button sizing,
+ * default hover treatment. No mosaic overrides; the previous 36×36
+ * icon-square reshape was tied to the now-removed nav row and made the
+ * header feel different from default Flarum without adding value. */
+
+/* Mobile session surface — see MobileSessionAvatar.js.
+ *
+ * Why a separately-mounted component instead of pure CSS:
+ * Flarum 2 puts the whole .App-header (including .item-session with
+ * the user avatar / login button) INSIDE #drawer.App-drawer. On
+ * mobile #drawer is visibility:hidden AND transform:translateX(-N) to
+ * slide it off-screen. The transform creates a containing block for
+ * position:fixed children, so even with visibility:visible overrides
+ * the floating element renders relative to the off-screen drawer.
+ *
+ * The fix: a tiny extra Mithril root mounted directly on document.body
+ * (outside the transform trap) that renders an avatar / log-in button
+ * positioned fixed top-right. JS file: MobileSessionAvatar.js, mounted
+ * by the forum initializer in index.js. */
+.MosaicMobileSession {
+  display: none;
+  position: fixed;
+  top: 8px;
+  right: 10px;
+  z-index: 102; /* above the App-navigation hamburger bar (z 101) */
+
+  @media (max-width: 767px) {
+    display: block;
+  }
+}
+
+.MosaicMobileSession-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.15s, transform 0.12s;
+  cursor: pointer;
+  font: inherit;
+
+  &:hover { background: var(--surface-inset); text-decoration: none; }
+  &:active { transform: scale(0.97); }
+
+  .Avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+}
+
+.MosaicMobileSession-loginLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 0 10px 0 4px;
+}
+
+/* Primary CTA button (New Ticket, etc.) */
+.Button--primary {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13.5px;
+  border: none;
+  transition: background 0.15s, transform 0.15s;
+
+  &:hover {
+    background: var(--primary-dark);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Generic button reset */
+.Button {
+  border-radius: var(--r-sm);
+  font-weight: 500;
+}
