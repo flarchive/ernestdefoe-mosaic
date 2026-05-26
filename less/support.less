@@ -1,0 +1,241 @@
+/* =====================================================================
+   linkrobins/support — ticket extension overrides
+   Adds visual treatment for the 5-state workflow, staff control bar,
+   internal notes, and ticket detail page.
+
+   NOTE: Class names below are written against expected conventions —
+   verify against linkrobins/support's actual DOM and rename selectors
+   as needed. The token-driven styles will still apply via the shared
+   .StatusPill and .Post components.
+   ===================================================================== */
+
+/* Ticket index page wrapper */
+.SupportPage,
+.TicketIndexPage {
+  .Hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+    color: #fff;
+    border-radius: var(--r-lg);
+    padding: 36px 32px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Empty / minimal-content support index — the "No tickets yet" card
+ * gets the full width of the content column instead of being a small
+ * pill at the top, and the message sits vertically + horizontally
+ * centered inside it. The sidebar (filter chips) stays where the
+ * IndexPage grid puts it on the right.
+ *
+ * Without these rules the empty card was ~250px wide and clung to the
+ * top-left of a 1000px+ content column, with the sidebar way off to
+ * the right of an otherwise-blank page. */
+.LinkRobinsSupport-page {
+  .LinkRobinsSupport-empty {
+    /* Fill the content column horizontally (the IndexPage grid already
+     * pins it to ~858px of a 1280px viewport once the 320px sidebar +
+     * gap are subtracted), and stay short vertically — just enough
+     * vertical padding to read as a deliberate empty-state card, not
+     * the whole viewport's worth of dead space. */
+    margin: 0;
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--r-md);
+  }
+}
+
+/* Flarum core hard-codes `.sideNav, .sideNav > ul { width: 190px }`
+ * on the support sidebar. Our IndexPage grid gives the right column
+ * 320px — so the sidebar's 190px content sat flush LEFT inside its
+ * 320px slot, leaving ~130px of dead space to the right of every
+ * filter chip. Push the nav and its UL right by auto-marginning the
+ * left edge; chips now sit flush against the right rail of the
+ * content area instead of floating mid-column.
+ *
+ * `width: auto` on `.sideNav > ul` lets the ul follow the chip
+ * widths so the right edge stays clean. */
+.LinkRobinsSupport-sidebar {
+  &.sideNav,
+  &.sideNav > ul {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+/* linkrobins/support reuses Flarum core's .IndexPage-nav scaffold and
+ * inherits the stock nav items (All Discussions / Groups / Following /
+ * Support self-link / Tags) above its own SUPPORT heading + status
+ * filter chips. Those stock items are already in our HeaderPrimary nav
+ * (Discussions / Tickets / Tags), so re-rendering them in the support
+ * sidebar is pure duplication — and the "Support" self-link is a link
+ * to the page the visitor is currently on.
+ *
+ * Hide them so the sidebar reads cleanly: [+ New ticket] then the
+ * SUPPORT heading + filter chips. Scoped to .LinkRobinsSupport-sidebar
+ * so /, /tags, /groups etc. keep their normal nav intact. */
+.LinkRobinsSupport-sidebar {
+  .item-allDiscussions,
+  .item-following,
+  .item-tags,
+  .item-groups,
+  .item-social-groups,
+  .item-linkrobins-support {
+    display: none;
+  }
+}
+
+/* Ticket list row — extends DiscussionListItem styling */
+.TicketListItem {
+  &-id {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface-inset);
+    padding: 2px 8px;
+    border-radius: var(--r-sm);
+    font-weight: 500;
+    margin-right: 8px;
+  }
+
+  &-status {
+    &--open     { .status-pill-base(); background: var(--status-open-bg);     color: var(--status-open); }
+    &--in_progress { .status-pill-base(); background: var(--status-progress-bg); color: var(--status-progress); }
+    &--awaiting_user { .status-pill-base(); background: var(--status-awaiting-bg); color: var(--status-awaiting); }
+    &--resolved { .status-pill-base(); background: var(--status-resolved-bg); color: var(--status-resolved); }
+    &--closed   { .status-pill-base(); background: var(--status-closed-bg);   color: var(--status-closed); }
+  }
+
+  &-claimedBy {
+    color: var(--primary);
+    font-weight: 600;
+  }
+}
+
+.status-pill-base() {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* Staff control bar — sticky bar above ticket replies */
+.TicketStaffControls,
+.StaffControlBar {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(168, 85, 247, 0.05));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+
+  &-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    padding-right: 12px;
+    border-right: 1px solid var(--border);
+  }
+
+  select {
+    padding: 5px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  .Button {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+
+    &:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    &--danger:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+  }
+}
+
+/* Internal note post (staff-only) */
+.Post--internalNote,
+.Post.is-internal {
+  border: 1px dashed var(--note-border) !important;
+  background: var(--note-bg) !important;
+  position: relative;
+
+  &::before {
+    content: '\f023  Internal note — only visible to staff';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    display: block;
+    background: rgba(245, 158, 11, 0.14);
+    color: var(--note);
+    margin: -18px -22px 14px;
+    padding: 7px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    border-bottom: 1px dashed var(--note-border);
+  }
+}
+
+/* Composer toggle: "Post as internal note" */
+.Composer-internalNoteToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.75px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: var(--r-sm);
+  transition: background 0.12s;
+
+  &:hover { background: var(--surface-inset); }
+
+  input { accent-color: var(--note); }
+}
