@@ -1,0 +1,289 @@
+/* =====================================================================
+   Discussion list — applies to Flarum's .DiscussionListItem
+   ===================================================================== */
+
+/* DiscussionList renders as a stack of rounded item-cards now,
+   matching the post-stream pattern where each .Post is its own
+   bordered/rounded card. The list itself becomes a transparent
+   wrapper — its border, background, and shadow are pushed onto each
+   item below so the colored stripe (border-left from ramon/colored)
+   wraps the corners of every row the same way the colored stripe on
+   .Post does. */
+.DiscussionList {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Per-item base border lives at LOW specificity (single class, 0,0,1,0)
+   so ramon/colored's `html[data-colored-border=left] .DiscussionListItem
+   { border-left: 3px solid <tag> }` rule (0,0,2,1) wins on the LEFT
+   side. My higher-specificity rule above sets background, radius, etc.
+   but DELIBERATELY omits `border` so it can't stomp ramon/colored's
+   left-side override. Top/right/bottom stay 1px from this rule. */
+.DiscussionListItem {
+  border: 1px solid var(--border);
+}
+
+/* Each row is now its own rounded card with surface bg + border +
+   shadow + full border-radius. ramon/colored's border-left wraps
+   all 4 corners the same way .Post does. Rows stack with an 8px gap
+   between them.
+
+   The right padding stays larger than the left — when a moderator/
+   admin views the list, Flarum renders a per-item controls dropdown
+   trigger (⋯) at the end of the row that's hidden from guests, and
+   that trigger needs room past the comment-count badge to read as
+   separate from the card edge.
+
+   NOTE: do NOT reset `right` or `margin-right` on .Dropdown or
+   .DiscussionListItem-controls here. Flarum positions the dropdown's
+   popup menu with `right:` values; resetting them shifts the menu
+   off-screen or hides it entirely. Trust the padding to keep the
+   trigger inside the card. */
+.IndexPage .DiscussionList .DiscussionListItem {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 48px 18px 26px;
+  margin-bottom: 8px;
+  transition: background 0.12s, border-color 0.15s;
+
+  /* Mobile: the desktop 26/48 horizontal padding only leaves ~250px
+     of inner width on a 375px viewport once the avatar + 12px gap is
+     accounted for, which forces the title onto 2 lines and pushes the
+     comment-count badge off into a near-collision with the title. Drop
+     to a tighter 14/16 inset (the per-item controls dropdown for
+     mods/admins still has comfortable room past the count badge). */
+  @media (max-width: 767.98px) {
+    padding: 14px 16px;
+  }
+
+  &:last-child { margin-bottom: 0; }
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--surface-inset); }
+
+  /* Whatever wrapper Flarum uses around the avatar (the link or the
+     Avatar itself) — make sure it lives inside our padding instead of
+     reverse-margining out of it. */
+  > .Avatar,
+  > a > .Avatar,
+  .DiscussionListItem-author {
+    margin-left: 0 !important;
+  }
+
+  .DiscussionListItem-main {
+    padding: 0;
+    margin-left: 12px;
+  }
+
+  .DiscussionListItem-title {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    margin: 0 0 4px;
+    color: var(--text);
+
+    &:hover { color: var(--primary); }
+  }
+
+  .DiscussionListItem-info {
+    /* --text-secondary not --text-muted: on a white card the muted
+       slate reads as nearly-illegible 4:1 contrast. Secondary gives a
+       comfortable read for the "X replied N hours ago" meta. */
+    color: var(--text-secondary);
+    font-size: 12.25px;
+  }
+
+  .DiscussionListItem-count {
+    color: var(--text-secondary);
+    font-weight: 600;
+
+    &.unread {
+      color: var(--primary);
+      font-weight: 700;
+    }
+  }
+}
+
+/* Filter chip row */
+.MosaicFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 14px;
+  flex-wrap: wrap;
+}
+
+.MosaicFilterChip {
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .count {
+    margin-left: 6px;
+    opacity: 0.75;
+    font-size: 12px;
+  }
+}
+
+/* Tag pills.
+ *
+ * Our own .MosaicTag class uses a neutral surface. For Flarum's
+ * .TagLabel we deliberately do NOT override background-color — the
+ * extension applies the per-tag color inline (from admin tag settings)
+ * and our override was stomping it, leaving every tag as a nearly-
+ * invisible white-on-white pill in light mode. We adjust shape only. */
+.MosaicTag {
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+}
+
+.MosaicTag--priority {
+  background: rgba(239, 68, 68, 0.10);
+  color: #dc2626;
+}
+
+.TagLabel {
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+  line-height: 1.5;
+}
+
+/* Section header above the discussion toolbar — "Recent Discussions"
+ * plus an optional count badge. Matches the render's section title. */
+.MosaicSectionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 4px 14px;
+  padding-top: 4px;
+
+  &-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--text);
+  }
+
+  &-count {
+    background: var(--surface-inset);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: var(--r-pill);
+  }
+}
+
+/* Status pills (used by both discussions and tickets) */
+.StatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+
+  &--open     { background: var(--status-open-bg);     color: var(--status-open); }
+  &--progress { background: var(--status-progress-bg); color: var(--status-progress); }
+  &--awaiting { background: var(--status-awaiting-bg); color: var(--status-awaiting); }
+  &--resolved { background: var(--status-resolved-bg); color: var(--status-resolved); }
+  &--solved   { background: var(--status-solved-bg);   color: var(--status-solved); }
+  &--closed   { background: var(--status-closed-bg);   color: var(--status-closed); }
+}
+
+/* =====================================================================
+   Tags below title — applies to BOTH the list-item card AND the
+   single-discussion hero.
+
+   Flarum core adds `tags` to DiscussionListItem-info at priority 10
+   (first in the inline metadata row, ahead of last-poster / reply-
+   count) and to DiscussionHero-items at priority 5 (above the title,
+   which sits at default priority 0). We don't want to re-extend those
+   item lists from JS — that's a theme concern and CSS reorders are
+   reversible if the user changes their mind.
+
+   See vendor/flarum/tags/js/src/forum/addTagLabels.js for the
+   priorities; vendor/flarum/core/js/src/common/helpers/listItems.tsx
+   for the `item-<key>` class on each <li>.
+   ===================================================================== */
+
+/* DiscussionListItem — tags break onto their own row directly under
+   the title, the rest of the metadata (last-poster, replied-time)
+   flows on the next row. The info <ul> is already positioned below
+   the title <h2> in the source, so we just need to force a row break
+   after the tags <li>.
+
+   Counter-rule: vendor/flarum/tags ships
+   `.DiscussionListItem-info > .item-tags { position: absolute;
+   right: 80px; top: 14px; max-width: 150px; -webkit-mask-image: …;
+   overflow: hidden; }` to float the tag chip into the top-right of
+   the card. We have to unset every one of those properties or
+   `flex-basis: 100%` is ignored (absolute elements are removed from
+   the flex flow). Specificity beats the upstream rule via the
+   parent `.DiscussionListItem` prefix. */
+.DiscussionListItem .DiscussionListItem-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 4px;
+
+  > .item-tags {
+    position: static;
+    flex-basis: 100%;
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
+    -webkit-mask-image: none;
+    margin: 0 0 2px;
+    top: auto;
+    right: auto;
+  }
+}
+
+/* DiscussionHero — the items <ul> ships as a column wrapper but
+   without explicit ordering, so badges (10) and tags (5) sit above
+   the title (0) in DOM order. Flip it: badges keep their default
+   top position, but title comes BEFORE tags via flex `order`. */
+.DiscussionHero .DiscussionHero-items {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  > .item-badges { order: 0; }
+  > .item-title  { order: 1; }
+  > .item-tags   { order: 2; margin-top: 6px; }
+}
