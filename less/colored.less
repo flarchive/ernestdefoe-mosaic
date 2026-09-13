@@ -1,0 +1,59 @@
+/* =====================================================================
+   ram0ng1/colored integration.
+
+   Live probe of an install with the extension active confirmed it
+   uses the following hooks (different from what the README implies):
+
+   On <html>:
+     data-theme="light|dark"
+     data-colored-header="true|false"
+     data-colored-border="left|full|off"
+   On <body>:
+     .colored--active                 (on discussion pages)
+   On <html>:
+     .colored--instant                (no-transition flag)
+
+   CSS variables it populates / consumes:
+     --hero-bg                 (set by Flarum core from the tag color;
+                                colored extends consumption to more
+                                surfaces)
+     --header-bg               (when data-colored-header=true)
+     --header-color
+     --header-control-bg
+     --header-control-color
+     --header-colored-color
+
+   Note: --colored-bg (which I'd previously assumed existed) is NOT a
+   thing in this extension. Removed the speculative deferrals that
+   referenced it.
+
+   Our integration here is small now — the bulk of the work was making
+   .DiscussionHero in post.less stop overriding --hero-bg. These rules
+   complement that by:
+     - making header nav tabs readable when colored tints the header
+     - clearing our row separator when colored paints a full row border
+     - honoring colored--instant by suppressing our transitions
+   ===================================================================== */
+
+/* Header tint integration removed: the previous MosaicHeaderNav-item /
+ * MosaicHeaderNav-start contrast overrides targeted nav tabs that used
+ * to live inside .Header-primary. Nav now renders in the hero pill row
+ * (MosaicHeroNav) below the tinted header, so the colored extension's
+ * header treatment doesn't need any mosaic-side compensation. */
+
+/* When the discussion list opts into a full colored row border, our
+   row-separator bottom border doubles up — clear it. */
+html[data-colored-border='full'] .DiscussionListItem {
+  border-bottom: 0;
+  margin-bottom: 6px;
+  border-radius: var(--r-sm);
+}
+
+/* Suppress all our transitions during colored's instant-toggle phase
+   so an admin flipping settings doesn't see flashes of intermediate
+   color states. */
+html.colored--instant,
+html.colored--instant * {
+  transition: none !important;
+  animation-duration: 0s !important;
+}
