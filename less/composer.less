@@ -1,0 +1,54 @@
+/* =====================================================================
+   Composer — Flarum 2 reply/post composer
+
+   IMPORTANT: keep this file color-only. Earlier rules in here set
+   `.TextEditor-controls .Button { display: grid; width: 30px;
+   height: 30px }` which were written against Flarum 1.x markup and
+   ended up forcing Flarum 2's markdown toolbar into a vertical stack
+   of serif-text glyphs (H, B, I, S in a column rather than icon
+   buttons in a horizontal row). The composer ships with its own
+   internal layout that's responsive to the editor in use (TextArea,
+   ProseMirror, etc.) — we override only colors via token vars, never
+   sizing or display.
+
+   Custom inline composer surfaces in our static preview HTML keep
+   their styles inline in preview/theme.css; this file is for the
+   real Flarum composer that opens via app.composer.show().
+   ===================================================================== */
+
+.Composer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Editor textarea coloring — both the legacy TextEditor and the
+   stock Flarum 2 markdown editor wrappers. We touch background and
+   text color only; the dimensions are Flarum's. */
+.TextEditor textarea,
+.ComposerBody-content textarea,
+.MarkdownEditor textarea {
+  background: var(--surface-inset);
+  color: var(--text);
+  border-color: var(--border);
+
+  &:focus {
+    border-color: var(--primary);
+    background: var(--surface);
+  }
+}
+
+/* Primary submit ("Post reply", "Submit") — color only. We do NOT
+   set width/height; Flarum picks those based on whether we're in the
+   in-page composer or the dock-bar variant. */
+.Composer-controls .Button--primary,
+.ComposerButton--submit {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+
+  &:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+  }
+}
